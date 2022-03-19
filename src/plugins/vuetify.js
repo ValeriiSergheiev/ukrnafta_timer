@@ -9,4 +9,5 @@ export default new Vuetify({
     locales: { uk },
     current: "uk",
   },
+  theme: { dark: false },
 });
