@@ -48,6 +48,7 @@
           <v-row>
             <v-col cols="3">
               <v-text-field
+                v-model.number="startValue"
                 label="Ввести значення"
                 color="orange darken-2"
                 class="ml-2"
@@ -55,20 +56,17 @@
             </v-col>
             <v-col cols="3">
               <v-text-field
+                v-model.number="consumption"
                 label="Ввести значення"
                 color="orange darken-2"
                 class="ml-2"
               ></v-text-field>
             </v-col>
             <v-col cols="3">
-              <v-text-field v-model="test" class="ml-2" readonly></v-text-field>
+              <v-text-field v-model.number="computedConsumption" class="ml-2" readonly></v-text-field>
             </v-col>
             <v-col cols="3">
-              <v-text-field
-                label="Ввести значення"
-                color="orange darken-2"
-                class="ml-2"
-              ></v-text-field>
+              <v-text-field label="Ввести значення" color="orange darken-2" class="ml-2"></v-text-field>
             </v-col>
           </v-row>
         </div>
@@ -78,10 +76,10 @@
             <v-col cols="12">
               <div class="d-flex justify-center">
                 <div class="result-box mx-3 rounded-lg elevation-3">
-                  <span></span>
+                  <span class="text-h5 font-weight-bold">{{ convertedSeconds }}</span>
                 </div>
                 <div class="result-box mx-3 rounded-lg elevation-3">
-                  <span></span>
+                  <span class="text-h5 font-weight-bold">{{ result }}</span>
                   <strong>cm<sup>3</sup></strong>
                 </div>
               </div>
@@ -99,17 +97,11 @@
                   class="result-item d-flex align-baseline rounded-lg mb-2"
                 >
                   <strong class="mr-2">{{ index + 1 }}.</strong>
-                  <v-btn
-                    :disabled="checkPoint.isActive"
-                    color="error"
-                    fab
-                    dark
-                    small
-                  >
+                  <v-btn @click="disableAlarm(checkPoint)" :disabled="!checkPoint.isActive" color="error" fab dark small>
                     <v-icon>mdi-bell-off-outline</v-icon>
                   </v-btn>
                   <v-text-field
-                    v-model="checkPoint.value"
+                    v-model.number="checkPoint.value"
                     :disabled="checkPoint.isActive"
                     label="Контроль"
                     color="error"
@@ -123,17 +115,15 @@
             </v-col>
             <v-col cols="6">
               <div class="mb-10">
-                <v-btn
-                  @click="addServicePoint"
-                  color="blue-grey"
-                  class="white--text"
-                >
+                <v-btn @click="addServicePoint" color="blue-grey" class="white--text">
                   Додати замiр
                   <v-icon dark> mdi-plus </v-icon>
                 </v-btn>
               </div>
               <div class="actions">
                 <v-btn
+                  @click="start"
+                  :disabled="!startValue || !consumption"
                   color="success"
                   elevation="2"
                   width="150"
@@ -141,30 +131,9 @@
                 >
                   старт
                 </v-btn>
-                <v-btn
-                  color="error"
-                  elevation="2"
-                  class="mt-5 d-block"
-                  width="150"
-                >
-                  стоп
-                </v-btn>
-                <v-btn
-                  color="primary"
-                  elevation="2"
-                  class="mt-5 d-block"
-                  width="150"
-                >
-                  далi
-                </v-btn>
-                <v-btn
-                  color="secondary"
-                  elevation="3"
-                  class="mt-5 d-block"
-                  width="150"
-                >
-                  скинути
-                </v-btn>
+                <v-btn @click="stop" color="error" elevation="2" class="mt-5 d-block" width="150"> стоп </v-btn>
+                <v-btn @click="proceedCount" color="primary" elevation="2" class="mt-5 d-block" width="150"> далi </v-btn>
+                <v-btn @click="reset" color="secondary" elevation="3" class="mt-5 d-block" width="150"> скинути </v-btn>
               </div>
             </v-col>
           </v-row>
@@ -175,30 +144,99 @@
 </template>
 
 <script>
+import mp3 from '@/assets/alarm.mp3'
+
 export default {
-  name: "App",
+  name: 'App',
 
   components: {},
 
   data: () => ({
-    test: 45789,
+    startValue: null,
+    consumption: null,
+    currentConsumption: 0,
+    interval: null,
+    secondsCounter: 0,
+    audio: null,
     checkPoints: [
       {
         value: null,
-        isActive: true,
+        isActive: false,
+        checked: false,
       },
     ],
   }),
+  mounted() {
+    this.configAudio()
+  },
+  computed: {
+    computedConsumption() {
+      return 1 / this.consumption || null
+    },
+    convertedSeconds() {
+      const date = new Date(null)
+      date.setSeconds(this.secondsCounter)
+      // TODO: check substr() on mobile
+      let time = date.toISOString().substr(11, 8)
+      return time
+    },
+    result() {
+      return (this.startValue - this.currentConsumption).toFixed(2) || null
+    },
+  },
   methods: {
     addServicePoint() {
       const newServicePoint = {
         value: null,
         isActive: false,
-      };
-      this.checkPoints.push(newServicePoint);
+        checked: false,
+      }
+      this.checkPoints.push(newServicePoint)
+    },
+    start() {
+      this.interval = setInterval(() => {
+        this.secondsCounter++
+        this.currentConsumption = this.secondsCounter * this.computedConsumption
+        this.checkPoints.forEach((checkPoint) => {
+          if (checkPoint.value.toFixed(2) >= this.result && !checkPoint.checked) {
+            checkPoint.checked = true
+            checkPoint.isActive = true
+            this.playAudio()
+          }
+        })
+      }, 1000)
+    },
+    stop() {
+      clearInterval(this.interval)
+      // this.secondsCounter = 0
+    },
+    proceedCount() {},
+    reset() {
+      this.secondsCounter = 0
+      this.startValue = null
+      this.consumption = null
+      this.currentConsumption = 0
+      this.checkPoints = [
+        {
+          value: null,
+          isActive: false,
+          checked: false,
+        },
+      ]
+    },
+    disableAlarm(checkPoint) {
+      checkPoint.isActive = false
+      this.audio.pause()
+    },
+    configAudio() {
+      this.audio = new Audio(mp3)
+      this.audio.loop = true
+    },
+    playAudio() {
+      this.audio.play()
     },
   },
-};
+}
 </script>
 
 <style lang="scss" scoped>
