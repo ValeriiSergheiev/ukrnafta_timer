@@ -115,7 +115,7 @@
             </v-col>
             <v-col cols="6">
               <div class="mb-10">
-                <v-btn @click="addServicePoint" color="blue-grey" class="white--text">
+                <v-btn @click="addCheckPoint" color="blue-grey" class="white--text">
                   Додати замiр
                   <v-icon dark> mdi-plus </v-icon>
                 </v-btn>
@@ -185,13 +185,13 @@ export default {
     },
   },
   methods: {
-    addServicePoint() {
-      const newServicePoint = {
+    addCheckPoint() {
+      const newCheckPoint = {
         value: null,
         isActive: false,
         checked: false,
       }
-      this.checkPoints.push(newServicePoint)
+      this.checkPoints.push(newCheckPoint)
     },
     start() {
       this.interval = setInterval(() => {
