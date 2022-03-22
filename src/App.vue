@@ -1,6 +1,6 @@
 <template>
   <v-app>
-    <v-app-bar app color="primary" dark>
+    <!--    <v-app-bar app color="primary" dark>
       <div class="d-flex align-center">
         <v-img
           alt="Vuetify Logo"
@@ -13,61 +13,63 @@
       </div>
 
       <v-spacer></v-spacer>
-    </v-app-bar>
+    </v-app-bar>-->
 
     <v-main>
       <v-container>
-        <div class="wrapper mt-5 text-center rounded-lg elevation-15">
+        <div class="wrapper mt-2 text-center rounded-lg elevation-15">
           <v-row>
-            <v-col cols="3">
+            <v-col cols="4">
               <strong>Початкове значення пресу</strong>
             </v-col>
-            <v-col cols="6">
+            <v-col cols="8">
               <strong>Розхід</strong>
             </v-col>
-            <v-col cols="3">
+            <!--            <v-col cols="3">
               <strong>Випередження таймеру</strong>
-            </v-col>
+            </v-col>-->
           </v-row>
 
           <v-row>
-            <v-col cols="3">
+            <v-col cols="4">
               <span>cm<sup>3</sup></span>
             </v-col>
-            <v-col cols="3">
+            <v-col cols="4">
               <span>сек / cm<sup>3</sup></span>
             </v-col>
-            <v-col cols="3">
+            <v-col cols="4">
               <strong>cm<sup>3</sup> / сек</strong>
             </v-col>
-            <v-col cols="3">
+            <!--            <v-col cols="3">
               <span>сек</span>
-            </v-col>
+            </v-col>-->
           </v-row>
 
           <v-row>
-            <v-col cols="3">
+            <v-col cols="4">
               <v-text-field
                 v-model.number="startValue"
-                label="Ввести значення"
+                type="number"
+                label="Ввести"
                 color="orange darken-2"
                 class="ml-2"
               ></v-text-field>
             </v-col>
-            <v-col cols="3">
+            <v-col cols="4">
               <v-text-field
                 v-model.number="consumption"
-                label="Ввести значення"
+                type="number"
+                label="Ввести"
                 color="orange darken-2"
                 class="ml-2"
               ></v-text-field>
             </v-col>
-            <v-col cols="3">
+            <v-col cols="4">
               <v-text-field v-model.number="computedConsumption" class="ml-2" readonly></v-text-field>
             </v-col>
-            <v-col cols="3">
+            <!--            <v-col cols="3">
               <v-text-field label="Ввести значення" color="orange darken-2" class="ml-2"></v-text-field>
-            </v-col>
+            </v-col>-->
           </v-row>
         </div>
 
@@ -87,25 +89,40 @@
           </v-row>
         </div>
 
+        <div>
+          <v-slider
+            v-model="slider"
+            :min="min"
+            :max="max"
+            :thumb-size="18"
+            color="error"
+            prepend-icon="mdi-alarm"
+            thumb-label="always"
+            hide-details
+            class="mt-8"
+          ></v-slider>
+        </div>
+
         <div class="mt-5 overflow-hidden">
           <v-row>
-            <v-col cols="6">
+            <v-col cols="7">
               <div v-if="checkPoints.length">
                 <div
                   v-for="(checkPoint, index) in checkPoints"
                   :key="index"
-                  class="result-item d-flex align-baseline rounded-lg mb-2"
+                  class="result-item d-flex align-baseline rounded-lg mb-4"
                 >
-                  <strong class="mr-2">{{ index + 1 }}.</strong>
+                  <small class="mr-1">{{ index + 1 }}.</small>
                   <v-btn @click="disableAlarm(checkPoint)" :disabled="!checkPoint.isActive" color="error" fab dark small>
                     <v-icon>mdi-bell-off-outline</v-icon>
                   </v-btn>
                   <v-text-field
                     v-model.number="checkPoint.value"
+                    pattern="\d*"
                     :disabled="checkPoint.isActive"
                     label="Контроль"
                     color="error"
-                    class="ml-5"
+                    class="ml-1"
                     suffix="cm3"
                     dense
                     hide-details
@@ -113,12 +130,9 @@
                 </div>
               </div>
             </v-col>
-            <v-col cols="6">
+            <v-col cols="5">
               <div class="mb-10">
-                <v-btn @click="addCheckPoint" color="blue-grey" class="white--text">
-                  Додати замiр
-                  <v-icon dark> mdi-plus </v-icon>
-                </v-btn>
+                <v-btn @click="addCheckPoint" color="blue-grey" class="white--text" height="40" block x-small>Додати замiр</v-btn>
               </div>
               <div class="actions">
                 <v-btn
@@ -126,14 +140,15 @@
                   :disabled="!startValue || !consumption"
                   color="success"
                   elevation="2"
-                  width="150"
                   class="d-block"
+                  block
+                  small
                 >
                   старт
                 </v-btn>
-                <v-btn @click="stop" color="error" elevation="2" class="mt-5 d-block" width="150"> стоп </v-btn>
-                <v-btn @click="proceedCount" color="primary" elevation="2" class="mt-5 d-block" width="150"> далi </v-btn>
-                <v-btn @click="reset" color="secondary" elevation="3" class="mt-5 d-block" width="150"> скинути </v-btn>
+                <v-btn @click="stop" color="error" elevation="2" class="mt-5 d-block" block small>стоп</v-btn>
+                <v-btn @click="proceedCount" color="primary" elevation="2" class="mt-5 d-block" block small> далi </v-btn>
+                <v-btn @click="reset" color="secondary" elevation="3" class="mt-5 d-block" block small> скинути </v-btn>
               </div>
             </v-col>
           </v-row>
@@ -158,6 +173,9 @@ export default {
     interval: null,
     secondsCounter: 0,
     audio: null,
+    slider: 30,
+    min: 0,
+    max: 120,
     checkPoints: [
       {
         value: null,
@@ -254,6 +272,7 @@ export default {
   &-box {
     position: relative;
     width: 20%;
+    min-width: 110px;
     height: 50px;
     background-color: #90caf9;
     border: 2px solid #546e7a;
@@ -267,7 +286,7 @@ export default {
     }
   }
   &-item {
-    padding: 10px;
+    //padding: 10px;
   }
 }
 </style>
