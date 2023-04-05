@@ -199,7 +199,7 @@ export default {
       return time
     },
     result() {
-      return (this.startValue - this.currentConsumption).toFixed(2) || null
+      return (this.startValue - this.currentConsumption).toFixed(1) || null
     },
   },
   methods: {
