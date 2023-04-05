@@ -16,6 +16,7 @@
     </v-app-bar>-->
 
     <v-main>
+      <div>test commit</div>
       <v-container>
         <div class="wrapper mt-2 text-center rounded-lg elevation-15">
           <v-row>
@@ -199,7 +200,7 @@ export default {
       return time
     },
     result() {
-      return (this.startValue - this.currentConsumption).toFixed(1) || null
+      return (this.startValue - this.currentConsumption).toFixed(2) || null
     },
   },
   methods: {
