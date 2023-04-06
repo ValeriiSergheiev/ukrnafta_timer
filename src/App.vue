@@ -16,7 +16,6 @@
     </v-app-bar>-->
 
     <v-main>
-      <div>test commit</div>
       <v-container>
         <div class="wrapper mt-2 text-center rounded-lg elevation-15">
           <v-row>
@@ -200,7 +199,7 @@ export default {
       return time
     },
     result() {
-      return (this.startValue - this.currentConsumption).toFixed(2) || null
+      return (this.startValue - this.currentConsumption).toFixed(1) || null
     },
   },
   methods: {
@@ -217,7 +216,7 @@ export default {
         this.secondsCounter++
         this.currentConsumption = this.secondsCounter * this.computedConsumption
         this.checkPoints.forEach((checkPoint) => {
-          if (checkPoint.value.toFixed(2) >= this.result && !checkPoint.checked) {
+          if (checkPoint.value.toFixed(1) >= this.result && !checkPoint.checked) {
             checkPoint.checked = true
             checkPoint.isActive = true
             this.playAudio()
